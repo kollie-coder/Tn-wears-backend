@@ -1,0 +1,32 @@
+{
+  "collectionName": "components_address_addresses",
+  "info": {
+    "displayName": "address"
+  },
+  "options": {},
+  "attributes": {
+    "deliveryState": {
+      "type": "string"
+    },
+    "deliveryPostalCode": {
+      "type": "string"
+    },
+    "deliveryAddress": {
+      "type": "string"
+    },
+    "deliveryCity": {
+      "type": "string"
+    },
+    "deliveryCountry": {
+      "type": "string"
+    },
+    "deliveryContact": {
+      "type": "string"
+    },
+    "isDefault": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "config": {}
+}

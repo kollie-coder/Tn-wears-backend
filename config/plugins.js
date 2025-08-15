@@ -11,7 +11,7 @@ module.exports = ({ env }) => ({
         },
       },
       register: {
-        allowedFields: ["firstname", "lastname"],
+        allowedFields: ["firstname", "lastname", "contact"],
       },
     },
   },

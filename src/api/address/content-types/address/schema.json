@@ -1,0 +1,42 @@
+{
+  "kind": "collectionType",
+  "collectionName": "addresses",
+  "info": {
+    "singularName": "address",
+    "pluralName": "addresses",
+    "displayName": "Address"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "deliveryStreet": {
+      "type": "string"
+    },
+    "deliveryCity": {
+      "type": "string"
+    },
+    "deliveryState": {
+      "type": "string"
+    },
+    "deliveryCountry": {
+      "type": "string"
+    },
+    "deliveryPostalCode": {
+      "type": "string"
+    },
+    "isDefault": {
+      "type": "boolean"
+    },
+    "address": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user",
+      "inversedBy": "addresses"
+    },
+    "deliveryContact": {
+      "type": "string"
+    }
+  }
+}

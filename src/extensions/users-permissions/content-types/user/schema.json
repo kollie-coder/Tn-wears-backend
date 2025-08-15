@@ -83,6 +83,21 @@
     },
     "verificationCodeExpiresAt": {
       "type": "datetime"
+    },
+    "contact": {
+      "type": "biginteger"
+    },
+    "dateOfBirth": {
+      "type": "date"
+    },
+    "focus": {
+      "type": "string"
+    },
+    "addresses": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::address.address",
+      "mappedBy": "address"
     }
   }
 }
