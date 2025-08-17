@@ -38,9 +38,30 @@ module.exports = {
         return ctx.send({ jwt, user: existingUser });
       }
 
+      // Get "authenticated" role
+      const authenticatedRole = await strapi
+        .query('plugin::users-permissions.role')
+        .findOne({ where: { type: 'authenticated' } });
+
+      if (!authenticatedRole) {
+        return ctx.internalServerError('Authenticated role not found');
+      }
+
 
       // New user - create one
-      const newUser = await strapi.plugin('users-permissions').service('user').add({
+      // const newUser = await strapi.plugin('users-permissions').service('user').add({
+      //   email,
+      //   username,
+      //   confirmed: true,
+      //   isVerified: true,
+      //   provider: 'google',
+      //   firstname,
+      //   lastname,
+      //   role: authenticatedRole.id
+      // });
+
+      // 4️⃣ Create new user
+      const createdUser = await strapi.plugin('users-permissions').service('user').add({
         email,
         username,
         confirmed: true,
@@ -48,12 +69,19 @@ module.exports = {
         provider: 'google',
         firstname,
         lastname,
+        role: authenticatedRole.id,
+      });
+
+      // Immediately fetch populated user
+      const newUser = await strapi.query('plugin::users-permissions.user').findOne({
+        where: { id: createdUser.id },
+        populate: ['role'],
       });
 
       // Create JWT
       const jwt = strapi.plugin('users-permissions').service('jwt').issue({ id: newUser.id });
 
-      ctx.send({ jwt, newUser });
+      ctx.send({ jwt, user:newUser });
 
       
     } catch (err) {
