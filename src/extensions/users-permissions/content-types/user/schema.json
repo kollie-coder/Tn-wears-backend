@@ -98,6 +98,27 @@
       "relation": "oneToMany",
       "target": "api::address.address",
       "mappedBy": "address"
+    },
+    "userType": {
+      "type": "enumeration",
+      "required": true,
+      "default": "customer",
+      "enum": [
+        "customer",
+        "seller"
+      ]
+    },
+    "stores": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::store.store",
+      "mappedBy": "owner"
+    },
+    "newsletter_subscription": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::newsletter-subscription.newsletter-subscription",
+      "inversedBy": "user"
     }
   }
 }

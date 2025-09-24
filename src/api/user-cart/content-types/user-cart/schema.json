@@ -1,0 +1,27 @@
+{
+  "kind": "collectionType",
+  "collectionName": "user_carts",
+  "info": {
+    "singularName": "user-cart",
+    "pluralName": "user-carts",
+    "displayName": "User-cart"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "userId": {
+      "type": "string"
+    },
+    "cartItems": {
+      "type": "json"
+    },
+    "lastUpdated": {
+      "type": "datetime"
+    },
+    "userDocumentId": {
+      "type": "string"
+    }
+  }
+}
