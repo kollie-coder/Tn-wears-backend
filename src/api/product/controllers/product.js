@@ -17,10 +17,15 @@ module.exports = createCoreController('api::product.product', ({ strapi }) => ({
           categories: true,
           store: true,
           tags: true,
-          sizes: true,
-          colors: true,
           collections: true,
-          reviews: true
+          reviews: true,
+          product_variants: {
+            populate: {
+              images: true,
+              sizes: true,
+              color: true,
+            }
+          }
         },
         limit: 1,
       }); 
@@ -65,7 +70,19 @@ async trending(ctx) {
           { salesCount: 'desc' },
           { views: 'desc' },
         ],
-        populate: ['images', 'categories', 'store', 'tags'],
+        populate: {
+          images: true,
+          categories: true,
+          store: true,
+          tags: true,
+          product_variants: {
+            populate: {
+              images: true,
+              sizes: true,
+              color: true,
+            }
+          }
+        },
         limit: 20,
       });
 
@@ -82,7 +99,20 @@ async trending(ctx) {
         uniqueProducts.push(
           ...(await strapi.entityService.findMany('api::product.product', {
             sort: [{ createdAt: 'desc' }],
-            populate: ['images', 'category', 'store', 'tags'],
+            // populate: ['images', 'category', 'store', 'tags'],
+            populate: {
+              images: true,
+              categories: true,
+              store: true,
+              tags: true,
+              product_variants: {
+                populate: {
+                  images: true,
+                  sizes: true,
+                  color: true,
+                }
+              }
+            },
             limit: 10,
           }))
         );
@@ -105,13 +135,23 @@ async trending(ctx) {
       filters.categories = { name: { $eq: categories } };
     }
 
-    if (price) {
-      const match = price.match(/Under\s*(\d+)/i);
-      if (match) {
-        const priceLimit = parseInt(match[1], 10);
-        filters.price = { $lt: priceLimit };
-      }
+    // if (price) {
+    //   const match = price.match(/Under\s*(\d+)/i);
+    //   if (match) {
+    //     const priceLimit = parseInt(match[1], 10);
+    //     filters.price = { $lt: priceLimit };
+    //   }
+    // }
+
+  if (price) {
+    const match = price.match(/Under\s*(\d+)/i);
+    if (match) {
+      const priceLimit = parseInt(match[1], 10);
+      filters.product_variants = {
+        price: { $lt: priceLimit }
+      };
     }
+  }
 
     if (q) {
       filters.$or = [
@@ -138,15 +178,20 @@ async trending(ctx) {
 
     const products = await strapi.entityService.findMany('api::product.product', {
       filters,
-      populate: {
-        images: true,
-        categories: true,
-        store: true,
-        tags: true,
-        sizes: true,
-        colors: true,
-        collections: true,
-      },
+     populate: {
+          images: true,
+          categories: true,
+          store: true,
+          tags: true,
+          collections: true,
+          product_variants: {
+            populate: {
+              images: true,
+              sizes: true,
+              color: true,
+            }
+          }
+        },
       // sort: [{ createdAt: 'desc' }],
       sort: sortOption,
       limit: 30,
@@ -158,7 +203,241 @@ async trending(ctx) {
     console.error('Error in search:', err);
     ctx.throw(500, 'Internal Server Error in search');
   }
-}
+},
+
+async findByStore(ctx) {
+  try {
+    const { storeId } = ctx.params;
+    const { page = 1, pageSize = 12 } = ctx.query;
+
+    // Use findMany instead of findPage
+    const products = await strapi.entityService.findMany('api::product.product', {
+      filters: {
+        store: { documentId: { $eq: storeId } }
+      },
+      populate: {
+        images: true,
+        categories: true,
+        store: true,
+        tags: true,
+        collections: true,
+        product_variants: {
+          populate: {
+            images: true,
+            sizes: true,
+            color: true,
+          }
+        }
+      },
+      sort: [{ createdAt: 'desc' }],
+      start: (page - 1) * pageSize,
+      limit: pageSize,
+    });
+
+    // Deduplicate by documentId
+    const seen = new Set();
+    const uniqueProducts = products.filter(p => {
+      if (seen.has(p.documentId)) return false;
+      seen.add(p.documentId);
+      return true;
+    });
+
+    // Get total count for pagination
+    const total = await strapi.entityService.count('api::product.product', {
+      filters: { store: { documentId: { $eq: storeId } } }
+    });
+
+    return {
+      results: uniqueProducts,
+      pagination: {
+        page: Number(page),
+        pageSize: Number(pageSize),
+        pageCount: Math.ceil(total / pageSize),
+        total,
+      },
+    };
+  } catch (err) {
+    console.error("Error in findByStore:", err);
+    ctx.throw(500, "Failed to fetch store products");
+  }
+},
+
+
+async suggested(ctx) {
+  try {
+    const { id: currentId } = ctx.params;
+    const { storeId, collectionId } = ctx.query;
+
+    // Build filters
+    const filters = {
+      $and: [
+        { documentId: { $ne: currentId } },
+        {
+          $or: [
+            storeId ? { store: { documentId: { $eq: storeId } } } : {},
+            collectionId ? { collections: { documentId: { $eq: collectionId } } } : {},
+          ].filter((f) => Object.keys(f).length > 0), // remove empty filters
+        },
+      ],
+    };
+
+    // Fetch suggested products
+    let products = await strapi.entityService.findMany('api::product.product', {
+      filters,
+      populate: {
+        images: true,
+        categories: true,
+        store: true,
+        tags: true,
+        collections: true,
+        product_variants: {
+          populate: {
+            images: true,
+            sizes: true,
+            color: true,
+          },
+        },
+      },
+      limit: 4,
+    });
+
+    // Fallback if none found
+    if (!products.length) {
+      products = await strapi.entityService.findMany('api::product.product', {
+        filters: { documentId: { $ne: currentId } },
+        populate: {
+          images: true,
+          categories: true,
+          store: true,
+          tags: true,
+          product_variants: {
+            populate: {
+              images: true,
+              sizes: true,
+              color: true,
+            },
+          },
+        },
+        sort: [{ createdAt: 'desc' }],
+        limit: 4,
+      });
+    }
+
+    // Normalize products
+    const normalizeProducts = (products) =>
+      products.map((p) => {
+        const firstVariant = p.product_variants?.[0] || {};
+        return {
+          id: p.id,
+          documentId: p.documentId,
+          name: p.name,
+          description: p.description,
+          images: p.images?.length ? p.images : firstVariant.images || [],
+          price: firstVariant.price || p.price || 0,
+          discountPrice: firstVariant.discountPrice || p.discountPrice || null,
+          colors: p.product_variants?.map((v) => v.color).filter(Boolean) || [],
+          sizes: p.product_variants?.flatMap((v) => v.sizes).filter(Boolean) || [],
+          shipping: p.shipping,
+          store: p.store,
+          categories: p.categories,
+        };
+      });
+
+    const normalized = normalizeProducts(products);
+
+    return { data: normalized };
+  } catch (err) {
+    console.error("💥 Error in suggested:", err);
+    ctx.throw(500, "Failed to fetch suggested products");
+  }
+},
+
+
+// async suggested(ctx) {
+//   try {
+//     const { id: currentId } = ctx.params;
+//     const { storeId, collectionId } = ctx.query;
+
+//     // Build filters: same store OR same collection, excluding current product
+//     const filters = {
+//       $and: [
+//         { documentId: { $ne: currentId } },
+//         {
+//           $or: [
+//             { store: { documentId: { $eq: storeId } } },
+//             { collections: { documentId: { $eq: collectionId } } },
+//           ],
+//         },
+//       ],
+//     };
+
+//     // Fetch suggested products
+//     let products = await strapi.entityService.findMany('api::product.product', {
+//       filters,
+//       populate: {
+//         images: true,
+//         categories: true,
+//         store: true,
+//         tags: true,
+//         product_variants: {
+//           populate: {
+//             images: true,
+//             sizes: true,
+//             color: true,
+//           },
+//         },
+//       },
+//       limit: 4,
+//     });
+
+//     // If no matches, fallback to random/latest 4
+//     if (!products.length) {
+//       products = await strapi.entityService.findMany('api::product.product', {
+//         filters: { documentId: { $ne: currentId } },
+//         populate: {
+//           images: true,
+//           categories: true,
+//           store: true,
+//           tags: true,
+//           product_variants: {
+//             populate: {
+//               images: true,
+//               sizes: true,
+//               color: true,
+//             },
+//           },
+//         },
+//         sort: [{ createdAt: 'desc' }],
+//         limit: 4,
+//       });
+//     }
+
+//     // Normalize product data
+//     const normalizeProducts = (products) =>
+//       products.map((p) => {
+//         const firstVariant = p.product_variants?.[0] || {};
+//         return {
+//           id: p.id,
+//           documentId: p.documentId,
+//           name: p.name,
+//           description: p.description,
+//           images: p.images?.length ? p.images : firstVariant.images || [],
+//           price: firstVariant.price || p.price || 0,
+//           discountPrice: firstVariant.discountPrice || p.discountPrice || null,
+//           colors: p.product_variants?.map((v) => v.color).filter(Boolean) || [],
+//           sizes: p.product_variants?.flatMap((v) => v.sizes).filter(Boolean) || [],
+//           shipping: p.shipping,
+//           store: p.store,
+//           categories: p.categories,
+//         };
+//       });
+
+//     return { data: normalizeProducts(products) };
+//   } catch (err) {
+//     console.error('Error in suggested:', err);
+//     ctx.throw(500, 'Failed to fetch suggested products');
+//   }
+// },
 
 }));
 

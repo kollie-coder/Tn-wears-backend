@@ -17,15 +17,15 @@
     "hexCode": {
       "type": "string"
     },
-    "products": {
-      "type": "relation",
-      "relation": "manyToMany",
-      "target": "api::product.product",
-      "inversedBy": "colors"
-    },
     "slug": {
       "type": "uid",
       "targetField": "name"
+    },
+    "product_variants": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::product-variant.product-variant",
+      "mappedBy": "color"
     }
   }
 }
