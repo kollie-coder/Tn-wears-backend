@@ -18,5 +18,22 @@ module.exports = {
         auth: false,
       },
     },
+    {
+      method: 'GET',
+      path: '/products/store/:storeId',
+      handler: 'product.findByStore',
+      config: {
+        auth: false,
+      },
+    },
+    {
+      method: 'GET',
+      path: '/products/suggested/:id',
+      handler: 'product.suggested',
+      config: {
+        auth: false,
+      },
+    },
+
   ],
 };
