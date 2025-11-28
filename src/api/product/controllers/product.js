@@ -22,10 +22,12 @@ module.exports = createCoreController('api::product.product', ({ strapi }) => ({
           product_variants: {
             populate: {
               images: true,
-              sizes: true,
               color: true,
+              size_variants: {
+                populate: { size: true },
+              },
             }
-          }
+          },
         },
         limit: 1,
       }); 
@@ -78,10 +80,12 @@ async trending(ctx) {
           product_variants: {
             populate: {
               images: true,
-              sizes: true,
               color: true,
-            }
-          }
+              size_variants: {
+                populate: { size: true },
+              },
+            },
+          },
         },
         limit: 20,
       });
@@ -108,8 +112,10 @@ async trending(ctx) {
               product_variants: {
                 populate: {
                   images: true,
-                  sizes: true,
                   color: true,
+                  size_variants: {
+                    populate: { size: true },
+                  },
                 }
               }
             },
@@ -148,7 +154,10 @@ async trending(ctx) {
     if (match) {
       const priceLimit = parseInt(match[1], 10);
       filters.product_variants = {
-        price: { $lt: priceLimit }
+        // price: { $lt: priceLimit }
+        size_variants: {
+          price: { $lt: priceLimit },
+        },
       };
     }
   }
@@ -187,10 +196,12 @@ async trending(ctx) {
           product_variants: {
             populate: {
               images: true,
-              sizes: true,
               color: true,
-            }
-          }
+              size_variants: {
+                populate: { size: true },
+              },
+            },
+          },
         },
       // sort: [{ createdAt: 'desc' }],
       sort: sortOption,
@@ -205,15 +216,75 @@ async trending(ctx) {
   }
 },
 
+// async findByStore(ctx) {
+//   try {
+//     const { storeId } = ctx.params;
+//     const { page = 1, pageSize = 12 } = ctx.query;
+
+//     // Use findMany instead of findPage
+//     const products = await strapi.entityService.findMany('api::product.product', {
+//       filters: {
+//         store: { documentId: { $eq: storeId } }
+//       },
+//       populate: {
+//         images: true,
+//         categories: true,
+//         store: true,
+//         tags: true,
+//         collections: true,
+//         product_variants: {
+//           populate: {
+//             images: true,
+//             color: true,
+//             size_variants: {
+//               populate: { size: true },
+//             },
+//           },
+//         },
+//       },
+//       sort: [{ createdAt: 'desc' }],
+//       start: (page - 1) * pageSize,
+//       limit: pageSize,
+//     });
+
+//     // Deduplicate by documentId
+//     const seen = new Set();
+//     const uniqueProducts = products.filter(p => {
+//       if (seen.has(p.documentId)) return false;
+//       seen.add(p.documentId);
+//       return true;
+//     });
+
+//     // Get total count for pagination
+//     const total = await strapi.entityService.count('api::product.product', {
+//       filters: { store: { documentId: { $eq: storeId } } }
+//     });
+
+//     return {
+//       results: uniqueProducts,
+//       pagination: {
+//         page: Number(page),
+//         pageSize: Number(pageSize),
+//         pageCount: Math.ceil(total / pageSize),
+//         total,
+//       },
+//     };
+//   } catch (err) {
+//     console.error("Error in findByStore:", err);
+//     ctx.throw(500, "Failed to fetch store products");
+//   }
+// },
+
+
 async findByStore(ctx) {
   try {
     const { storeId } = ctx.params;
     const { page = 1, pageSize = 12 } = ctx.query;
 
-    // Use findMany instead of findPage
-    const products = await strapi.entityService.findMany('api::product.product', {
+    // ✅ Fetch products by storeId with all nested relations
+    const products = await strapi.entityService.findMany("api::product.product", {
       filters: {
-        store: { documentId: { $eq: storeId } }
+        store: { documentId: { $eq: storeId } },
       },
       populate: {
         images: true,
@@ -224,31 +295,85 @@ async findByStore(ctx) {
         product_variants: {
           populate: {
             images: true,
-            sizes: true,
             color: true,
-          }
-        }
+            size_variants: {
+              populate: {
+                size: true,
+              },
+            },
+          },
+        },
       },
-      sort: [{ createdAt: 'desc' }],
+      sort: [{ createdAt: "desc" }],
       start: (page - 1) * pageSize,
       limit: pageSize,
     });
 
-    // Deduplicate by documentId
+    // ✅ Deduplicate by documentId (Strapi sometimes returns duplicates)
     const seen = new Set();
-    const uniqueProducts = products.filter(p => {
+    const uniqueProducts = products.filter((p) => {
       if (seen.has(p.documentId)) return false;
       seen.add(p.documentId);
       return true;
     });
 
-    // Get total count for pagination
-    const total = await strapi.entityService.count('api::product.product', {
-      filters: { store: { documentId: { $eq: storeId } } }
+    // ✅ Normalize data for frontend use
+    const formattedProducts = uniqueProducts.map((p) => {
+      const variants = p.product_variants?.map((v) => ({
+        id: v.id,
+        documentId: v.documentId,
+        color: v.color?.name || null,
+        price: Number(v.price) || 0,
+        discountPrice: Number(v.discountPrice) || null,
+        stock: v.stock ?? 0,
+        images: v.images || [],
+        sizes:
+          v.size_variants?.map((sv) => ({
+            id: sv.id,
+            documentId: sv.documentId,
+            name: sv.size?.label || null,
+            price: Number(sv.price) || 0,
+            discountPrice: Number(sv.discountPrice) || null,
+            stock: sv.stock ?? 0,
+          })) || [],
+      }));
+
+      // Choose the first available variant and size for table preview
+      const firstVariant = variants?.[0];
+      const firstSize = firstVariant?.sizes?.[0];
+
+      return {
+        id: p.id,
+        documentId: p.documentId,
+        name: p.name,
+        store: p.store,
+        categories: p.categories,
+        tags: p.tags,
+        collections: p.collections,
+        images: p.images,
+        price:
+          firstSize?.price ||
+          firstVariant?.price ||
+          0,
+        discountPrice:
+          firstSize?.discountPrice ||
+          firstVariant?.discountPrice ||
+          null,
+        stock:
+          firstSize?.stock ??
+          firstVariant?.stock ??
+          0,
+        variants,
+      };
+    });
+
+    // ✅ Pagination count
+    const total = await strapi.entityService.count("api::product.product", {
+      filters: { store: { documentId: { $eq: storeId } } },
     });
 
     return {
-      results: uniqueProducts,
+      results: formattedProducts,
       pagination: {
         page: Number(page),
         pageSize: Number(pageSize),
@@ -257,7 +382,7 @@ async findByStore(ctx) {
       },
     };
   } catch (err) {
-    console.error("Error in findByStore:", err);
+    console.error(" Error in findByStore:", err);
     ctx.throw(500, "Failed to fetch store products");
   }
 },
@@ -293,8 +418,10 @@ async suggested(ctx) {
         product_variants: {
           populate: {
             images: true,
-            sizes: true,
             color: true,
+            size_variants: {
+              populate: { size: true },
+            },
           },
         },
       },
@@ -313,8 +440,10 @@ async suggested(ctx) {
           product_variants: {
             populate: {
               images: true,
-              sizes: true,
               color: true,
+              size_variants: {
+                populate: { size: true },
+              },
             },
           },
         },
@@ -333,10 +462,24 @@ async suggested(ctx) {
           name: p.name,
           description: p.description,
           images: p.images?.length ? p.images : firstVariant.images || [],
-          price: firstVariant.price || p.price || 0,
-          discountPrice: firstVariant.discountPrice || p.discountPrice || null,
+          // price: firstVariant.price || p.price || 0,
+          // discountPrice: firstVariant.discountPrice || p.discountPrice || null,
+          price:
+            firstVariant.size_variants?.[0]?.price ||
+            firstVariant.price ||
+            p.price ||
+            0,
+          discountPrice:
+            firstVariant.size_variants?.[0]?.discountPrice ||
+            firstVariant.discountPrice ||
+            p.discountPrice ||
+            null,
           colors: p.product_variants?.map((v) => v.color).filter(Boolean) || [],
-          sizes: p.product_variants?.flatMap((v) => v.sizes).filter(Boolean) || [],
+          // sizes: p.product_variants?.flatMap((v) => v.sizes).filter(Boolean) || [],
+           sizes:
+              p.product_variants
+                ?.flatMap(v => v.size_variants?.map(sv => sv.size))
+                .filter(Boolean) || [],
           shipping: p.shipping,
           store: p.store,
           categories: p.categories,
@@ -351,6 +494,8 @@ async suggested(ctx) {
     ctx.throw(500, "Failed to fetch suggested products");
   }
 },
+
+// ✅ Restore default Strapi v5 "create" logic
 
 
 // async suggested(ctx) {

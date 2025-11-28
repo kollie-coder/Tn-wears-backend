@@ -1,0 +1,40 @@
+{
+  "kind": "collectionType",
+  "collectionName": "size_variants",
+  "info": {
+    "singularName": "size-variant",
+    "pluralName": "size-variants",
+    "displayName": "size-variant"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "size": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::size.size",
+      "inversedBy": "size_variants"
+    },
+    "product_variant": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::product-variant.product-variant",
+      "inversedBy": "size_variants"
+    },
+    "stock": {
+      "type": "integer",
+      "default": 0
+    },
+    "sku": {
+      "type": "string"
+    },
+    "price": {
+      "type": "decimal"
+    },
+    "discountPrice": {
+      "type": "decimal"
+    }
+  }
+}

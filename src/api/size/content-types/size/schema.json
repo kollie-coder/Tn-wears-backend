@@ -12,7 +12,9 @@
   "pluginOptions": {},
   "attributes": {
     "label": {
-      "type": "string"
+      "type": "string",
+      "required": true,
+      "unique": true
     },
     "code": {
       "type": "string",
@@ -24,11 +26,11 @@
       "target": "api::category.category",
       "inversedBy": "sizes"
     },
-    "product_variants": {
+    "size_variants": {
       "type": "relation",
-      "relation": "manyToMany",
-      "target": "api::product-variant.product-variant",
-      "mappedBy": "sizes"
+      "relation": "oneToMany",
+      "target": "api::size-variant.size-variant",
+      "mappedBy": "size"
     }
   }
 }
