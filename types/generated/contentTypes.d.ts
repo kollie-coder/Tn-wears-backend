@@ -614,7 +614,10 @@ export interface ApiProductVariantProductVariant
     price: Schema.Attribute.Decimal & Schema.Attribute.Required;
     product: Schema.Attribute.Relation<'manyToOne', 'api::product.product'>;
     publishedAt: Schema.Attribute.DateTime;
-    sizes: Schema.Attribute.Relation<'manyToMany', 'api::size.size'>;
+    size_variants: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::size-variant.size-variant'
+    >;
     sku: Schema.Attribute.String &
       Schema.Attribute.Required &
       Schema.Attribute.Unique;
@@ -710,6 +713,42 @@ export interface ApiReviewReview extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiSizeVariantSizeVariant extends Struct.CollectionTypeSchema {
+  collectionName: 'size_variants';
+  info: {
+    displayName: 'size-variant';
+    pluralName: 'size-variants';
+    singularName: 'size-variant';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    discountPrice: Schema.Attribute.Decimal;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::size-variant.size-variant'
+    > &
+      Schema.Attribute.Private;
+    price: Schema.Attribute.Decimal;
+    product_variant: Schema.Attribute.Relation<
+      'manyToOne',
+      'api::product-variant.product-variant'
+    >;
+    publishedAt: Schema.Attribute.DateTime;
+    size: Schema.Attribute.Relation<'manyToOne', 'api::size.size'>;
+    sku: Schema.Attribute.String;
+    stock: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiSizeSize extends Struct.CollectionTypeSchema {
   collectionName: 'sizes';
   info: {
@@ -726,15 +765,17 @@ export interface ApiSizeSize extends Struct.CollectionTypeSchema {
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
-    label: Schema.Attribute.String;
+    label: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.Unique;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<'oneToMany', 'api::size.size'> &
       Schema.Attribute.Private;
-    product_variants: Schema.Attribute.Relation<
-      'manyToMany',
-      'api::product-variant.product-variant'
-    >;
     publishedAt: Schema.Attribute.DateTime;
+    size_variants: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::size-variant.size-variant'
+    >;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -1373,6 +1414,7 @@ declare module '@strapi/strapi' {
       'api::product-variant.product-variant': ApiProductVariantProductVariant;
       'api::product.product': ApiProductProduct;
       'api::review.review': ApiReviewReview;
+      'api::size-variant.size-variant': ApiSizeVariantSizeVariant;
       'api::size.size': ApiSizeSize;
       'api::store.store': ApiStoreStore;
       'api::tag.tag': ApiTagTag;

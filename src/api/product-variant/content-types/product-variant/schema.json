@@ -26,7 +26,7 @@
     "discountPrice": {
       "type": "decimal"
     },
-    "stock": {
+     "stock": {                
       "type": "integer",
       "default": 0
     },
@@ -36,12 +36,6 @@
       "allowedTypes": [
         "images"
       ]
-    },
-    "sizes": {
-      "type": "relation",
-      "relation": "manyToMany",
-      "target": "api::size.size",
-      "inversedBy": "product_variants"
     },
     "color": {
       "type": "relation",
@@ -54,6 +48,12 @@
       "relation": "manyToOne",
       "target": "api::product.product",
       "inversedBy": "product_variants"
+    },
+    "size_variants": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::size-variant.size-variant",
+      "mappedBy": "product_variant"
     }
   }
 }
