@@ -20,17 +20,17 @@
       "type": "string",
       "unique": true
     },
-    "category": {
-      "type": "relation",
-      "relation": "manyToOne",
-      "target": "api::category.category",
-      "inversedBy": "sizes"
-    },
     "size_variants": {
       "type": "relation",
       "relation": "oneToMany",
       "target": "api::size-variant.size-variant",
       "mappedBy": "size"
+    },
+    "size_groups": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::size-group.size-group",
+      "mappedBy": "sizes"
     }
   }
 }

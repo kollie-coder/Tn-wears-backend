@@ -107,43 +107,6 @@ export interface AdminApiTokenPermission extends Struct.CollectionTypeSchema {
   };
 }
 
-export interface AdminAuditLog extends Struct.CollectionTypeSchema {
-  collectionName: 'strapi_audit_logs';
-  info: {
-    displayName: 'Audit Log';
-    pluralName: 'audit-logs';
-    singularName: 'audit-log';
-  };
-  options: {
-    draftAndPublish: false;
-    timestamps: false;
-  };
-  pluginOptions: {
-    'content-manager': {
-      visible: false;
-    };
-    'content-type-builder': {
-      visible: false;
-    };
-  };
-  attributes: {
-    action: Schema.Attribute.String & Schema.Attribute.Required;
-    createdAt: Schema.Attribute.DateTime;
-    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
-      Schema.Attribute.Private;
-    date: Schema.Attribute.DateTime & Schema.Attribute.Required;
-    locale: Schema.Attribute.String & Schema.Attribute.Private;
-    localizations: Schema.Attribute.Relation<'oneToMany', 'admin::audit-log'> &
-      Schema.Attribute.Private;
-    payload: Schema.Attribute.JSON;
-    publishedAt: Schema.Attribute.DateTime;
-    updatedAt: Schema.Attribute.DateTime;
-    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
-      Schema.Attribute.Private;
-    user: Schema.Attribute.Relation<'oneToOne', 'admin::user'>;
-  };
-}
-
 export interface AdminPermission extends Struct.CollectionTypeSchema {
   collectionName: 'admin_permissions';
   info: {
@@ -478,7 +441,10 @@ export interface ApiCategoryCategory extends Struct.CollectionTypeSchema {
     parent: Schema.Attribute.Relation<'manyToOne', 'api::category.category'>;
     products: Schema.Attribute.Relation<'manyToMany', 'api::product.product'>;
     publishedAt: Schema.Attribute.DateTime;
-    sizes: Schema.Attribute.Relation<'oneToMany', 'api::size.size'>;
+    size_group: Schema.Attribute.Relation<
+      'manyToOne',
+      'api::size-group.size-group'
+    >;
     slug: Schema.Attribute.UID<'name'>;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
@@ -713,6 +679,39 @@ export interface ApiReviewReview extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiSizeGroupSizeGroup extends Struct.CollectionTypeSchema {
+  collectionName: 'size_groups';
+  info: {
+    displayName: 'Size Group';
+    pluralName: 'size-groups';
+    singularName: 'size-group';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    categories: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::category.category'
+    >;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::size-group.size-group'
+    > &
+      Schema.Attribute.Private;
+    Name: Schema.Attribute.String & Schema.Attribute.Required;
+    publishedAt: Schema.Attribute.DateTime;
+    sizes: Schema.Attribute.Relation<'manyToMany', 'api::size.size'>;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiSizeVariantSizeVariant extends Struct.CollectionTypeSchema {
   collectionName: 'size_variants';
   info: {
@@ -760,7 +759,6 @@ export interface ApiSizeSize extends Struct.CollectionTypeSchema {
     draftAndPublish: true;
   };
   attributes: {
-    category: Schema.Attribute.Relation<'manyToOne', 'api::category.category'>;
     code: Schema.Attribute.String & Schema.Attribute.Unique;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
@@ -772,6 +770,10 @@ export interface ApiSizeSize extends Struct.CollectionTypeSchema {
     localizations: Schema.Attribute.Relation<'oneToMany', 'api::size.size'> &
       Schema.Attribute.Private;
     publishedAt: Schema.Attribute.DateTime;
+    size_groups: Schema.Attribute.Relation<
+      'manyToMany',
+      'api::size-group.size-group'
+    >;
     size_variants: Schema.Attribute.Relation<
       'oneToMany',
       'api::size-variant.size-variant'
@@ -1346,13 +1348,17 @@ export interface PluginUsersPermissionsUser
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
     dateOfBirth: Schema.Attribute.Date;
+    deletedAt: Schema.Attribute.DateTime;
     email: Schema.Attribute.Email &
       Schema.Attribute.Required &
       Schema.Attribute.SetMinMaxLength<{
         minLength: 6;
       }>;
+    emailCodeExpiry: Schema.Attribute.DateTime & Schema.Attribute.Private;
+    emailVerificationCode: Schema.Attribute.String & Schema.Attribute.Private;
     firstname: Schema.Attribute.String & Schema.Attribute.Required;
     focus: Schema.Attribute.String;
+    isDeleted: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
     isVerified: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
     lastname: Schema.Attribute.String & Schema.Attribute.Required;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
@@ -1370,6 +1376,7 @@ export interface PluginUsersPermissionsUser
       Schema.Attribute.SetMinMaxLength<{
         minLength: 6;
       }>;
+    pendingEmail: Schema.Attribute.String & Schema.Attribute.Private;
     provider: Schema.Attribute.String;
     publishedAt: Schema.Attribute.DateTime;
     resetPasswordToken: Schema.Attribute.String & Schema.Attribute.Private;
@@ -1378,6 +1385,9 @@ export interface PluginUsersPermissionsUser
       'plugin::users-permissions.role'
     >;
     stores: Schema.Attribute.Relation<'oneToMany', 'api::store.store'>;
+    twoFactorEnabled: Schema.Attribute.Boolean &
+      Schema.Attribute.DefaultTo<false>;
+    twoFactorPin: Schema.Attribute.String & Schema.Attribute.Private;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -1400,7 +1410,6 @@ declare module '@strapi/strapi' {
     export interface ContentTypeSchemas {
       'admin::api-token': AdminApiToken;
       'admin::api-token-permission': AdminApiTokenPermission;
-      'admin::audit-log': AdminAuditLog;
       'admin::permission': AdminPermission;
       'admin::role': AdminRole;
       'admin::transfer-token': AdminTransferToken;
@@ -1414,6 +1423,7 @@ declare module '@strapi/strapi' {
       'api::product-variant.product-variant': ApiProductVariantProductVariant;
       'api::product.product': ApiProductProduct;
       'api::review.review': ApiReviewReview;
+      'api::size-group.size-group': ApiSizeGroupSizeGroup;
       'api::size-variant.size-variant': ApiSizeVariantSizeVariant;
       'api::size.size': ApiSizeSize;
       'api::store.store': ApiStoreStore;

@@ -1,9 +1,9 @@
 const path = require('path');
 
 module.exports = ({ env }) => ({
- "users-permissions": {
+  "users-permissions": {
     config: {
-       providers: {
+      providers: {
         google: {
           clientId: env('GOOGLE_CLIENT_ID'),
           clientSecret: env('GOOGLE_CLIENT_SECRET'),
@@ -17,19 +17,19 @@ module.exports = ({ env }) => ({
   },
   email: {
     config: {
-      provider: path.resolve('./src/providers/custom-email-provider'),
+     provider: path.resolve('./src/providers/custom-email-provider'),
       providerOptions: {
         transport: {
           service: 'gmail',
-        auth: {
-          user: env('BREVO_SMTP_USERNAME'),
-          pass: env('BREVO_SMTP_PASSWORD'),
+          auth: {
+            user: env('BREVO_SMTP_USERNAME'),
+            pass: env('BREVO_SMTP_PASSWORD'),
+          },
         },
       },
-    },
       settings: {
-        defaultFrom: 'BREVO_DEFAULT_FROM',
-        defaultReplyTo: 'BREVO_DEFAULT_TO',
+        defaultFrom: env('BREVO_DEFAULT_FROM'),
+        defaultReplyTo: env('BREVO_DEFAULT_TO'),
       },
     },
   },

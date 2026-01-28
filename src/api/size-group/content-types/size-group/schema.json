@@ -1,0 +1,31 @@
+{
+  "kind": "collectionType",
+  "collectionName": "size_groups",
+  "info": {
+    "singularName": "size-group",
+    "pluralName": "size-groups",
+    "displayName": "Size Group"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "Name": {
+      "type": "string",
+      "required": true
+    },
+    "sizes": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::size.size",
+      "inversedBy": "size_groups"
+    },
+    "categories": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::category.category",
+      "mappedBy": "size_group"
+    }
+  }
+}

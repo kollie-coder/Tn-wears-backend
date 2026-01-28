@@ -34,6 +34,7 @@ module.exports = {
       data: {
         verificationCode: null,
         verificationCodeExpiresAt: null,
+        confirmed: true,
         isVerified: true, // optional: mark as confirmed
       },
     });
