@@ -55,11 +55,11 @@
       "target": "api::product.product",
       "mappedBy": "categories"
     },
-    "sizes": {
+    "size_group": {
       "type": "relation",
-      "relation": "oneToMany",
-      "target": "api::size.size",
-      "mappedBy": "category"
+      "relation": "manyToOne",
+      "target": "api::size-group.size-group",
+      "inversedBy": "categories"
     }
   }
 }

@@ -119,6 +119,33 @@
       "relation": "oneToOne",
       "target": "api::newsletter-subscription.newsletter-subscription",
       "inversedBy": "user"
+    },
+    "pendingEmail": {
+      "type": "string",
+      "private": true
+    },
+    "emailVerificationCode": {
+      "type": "string",
+      "private": true
+    },
+    "emailCodeExpiry": {
+      "type": "datetime",
+      "private": true
+    },
+    "twoFactorEnabled": {
+      "type": "boolean",
+      "default": false
+    },
+    "twoFactorPin": {
+      "type": "string",
+      "private": true
+    },
+    "isDeleted": {
+      "type": "boolean",
+      "default": false
+    },
+    "deletedAt": {
+      "type": "datetime"
     }
   }
 }
