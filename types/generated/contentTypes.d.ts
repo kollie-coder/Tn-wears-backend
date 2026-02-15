@@ -552,6 +552,62 @@ export interface ApiNewsletterSubscriptionNewsletterSubscription
   };
 }
 
+export interface ApiOrderOrder extends Struct.CollectionTypeSchema {
+  collectionName: 'orders';
+  info: {
+    displayName: 'Order';
+    pluralName: 'orders';
+    singularName: 'order';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    customerEmail: Schema.Attribute.Email;
+    customerName: Schema.Attribute.String;
+    deliveryAddress: Schema.Attribute.JSON & Schema.Attribute.Required;
+    deliveryFee: Schema.Attribute.Decimal &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<0>;
+    estimatedDeliveryDate: Schema.Attribute.Date;
+    items: Schema.Attribute.JSON & Schema.Attribute.Required;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<'oneToMany', 'api::order.order'> &
+      Schema.Attribute.Private;
+    orderReference: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.Unique;
+    orderStatus: Schema.Attribute.Enumeration<
+      ['processing', 'confirmed', 'shipped', 'delivered', 'cancelled']
+    > &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<'processing'>;
+    paymentMethod: Schema.Attribute.String;
+    paymentReference: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.Unique;
+    paymentStatus: Schema.Attribute.Enumeration<
+      ['pending', 'paid', 'failed', 'refunded']
+    > &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<'pending'>;
+    publishedAt: Schema.Attribute.DateTime;
+    subtotal: Schema.Attribute.Decimal & Schema.Attribute.Required;
+    tip: Schema.Attribute.Decimal & Schema.Attribute.DefaultTo<0>;
+    totalAmount: Schema.Attribute.Decimal & Schema.Attribute.Required;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    user: Schema.Attribute.Relation<
+      'manyToOne',
+      'plugin::users-permissions.user'
+    >;
+  };
+}
+
 export interface ApiProductVariantProductVariant
   extends Struct.CollectionTypeSchema {
   collectionName: 'product_variants';
@@ -1371,6 +1427,7 @@ export interface PluginUsersPermissionsUser
       'oneToOne',
       'api::newsletter-subscription.newsletter-subscription'
     >;
+    orders: Schema.Attribute.Relation<'oneToMany', 'api::order.order'>;
     password: Schema.Attribute.Password &
       Schema.Attribute.Private &
       Schema.Attribute.SetMinMaxLength<{
@@ -1420,6 +1477,7 @@ declare module '@strapi/strapi' {
       'api::collection.collection': ApiCollectionCollection;
       'api::color.color': ApiColorColor;
       'api::newsletter-subscription.newsletter-subscription': ApiNewsletterSubscriptionNewsletterSubscription;
+      'api::order.order': ApiOrderOrder;
       'api::product-variant.product-variant': ApiProductVariantProductVariant;
       'api::product.product': ApiProductProduct;
       'api::review.review': ApiReviewReview;

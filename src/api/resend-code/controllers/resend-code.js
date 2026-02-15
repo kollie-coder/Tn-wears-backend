@@ -123,6 +123,7 @@ module.exports = {
     // Send email
     await strapi.plugin('email').service('email').send({
       to: email,
+      from: process.env.BREVO_DEFAULT_FROM,
       subject: 'Your Verification Code',
       // text: `Your verification code is ${code}`,
       text: textTemplate,
@@ -132,38 +133,3 @@ module.exports = {
     return ctx.send({ message: 'Verification code resent successfully.' });
   },
 };
-
-
-
-
-// 'use strict';
-
-// module.exports = {
-//   async resend(ctx) {
-//     const { email } = ctx.request.body;
-
-//     const user = await strapi.entityService.findMany('plugin::users-permissions.user', {
-//       filters: { email },
-//     });
-
-//     if (!user || user.length === 0) {
-//       return ctx.badRequest('User not found');
-//     }
-
-//     const code = Math.floor(100000 + Math.random() * 900000).toString();
-
-//     await strapi.entityService.update('plugin::users-permissions.user', user[0].id, {
-//       data: {
-//         verificationCode: code,
-//       },
-//     });
-
-//     await strapi.plugins['email'].services.email.send({
-//       to: email,
-//       subject: 'Your New Verification Code',
-//       html: `<p>Your new code is: <strong>${code}</strong></p>`,
-//     });
-
-//     return { message: 'Code resent' };
-//   },
-// };
