@@ -1,0 +1,91 @@
+{
+  "kind": "collectionType",
+  "collectionName": "orders",
+  "info": {
+    "singularName": "order",
+    "pluralName": "orders",
+    "displayName": "Order"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "orderReference": {
+      "type": "string",
+      "required": true,
+      "unique": true
+    },
+    "items": {
+      "type": "json",
+      "required": true
+    },
+    "subtotal": {
+      "type": "decimal",
+      "required": true
+    },
+    "deliveryFee": {
+      "type": "decimal",
+      "required": true,
+      "default": 0
+    },
+    "tip": {
+      "type": "decimal",
+      "default": 0
+    },
+    "totalAmount": {
+      "type": "decimal",
+      "required": true
+    },
+    "paymentReference": {
+      "type": "string",
+      "required": true,
+      "unique": true
+    },
+    "paymentStatus": {
+      "type": "enumeration",
+      "required": true,
+      "default": "pending",
+      "enum": [
+        "pending",
+        "paid",
+        "failed",
+        "refunded"
+      ]
+    },
+    "orderStatus": {
+      "type": "enumeration",
+      "required": true,
+      "default": "processing",
+      "enum": [
+        "processing",
+        "confirmed",
+        "shipped",
+        "delivered",
+        "cancelled"
+      ]
+    },
+    "deliveryAddress": {
+      "type": "json",
+      "required": true
+    },
+    "customerEmail": {
+      "type": "email"
+    },
+    "customerName": {
+      "type": "string"
+    },
+    "paymentMethod": {
+      "type": "string"
+    },
+    "estimatedDeliveryDate": {
+      "type": "date"
+    },
+    "user": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user",
+      "inversedBy": "orders"
+    }
+  }
+}

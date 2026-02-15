@@ -142,6 +142,7 @@ module.exports = {
     try {
       await strapi.plugins['email'].services.email.send({
         to: email,
+        from: process.env.BREVO_DEFAULT_FROM,
         subject: 'Verify Your New Email Address',
         text: `Your verification code is: ${verificationCode}`,
         html: `
@@ -334,6 +335,7 @@ module.exports = {
     try {
       await strapi.plugins['email'].services.email.send({
         to: email,
+        from: process.env.BREVO_DEFAULT_FROM,
         subject: 'Verify Your New Email Address',
         text: `Your verification code is: ${verificationCode}`,
         html: `
@@ -566,67 +568,6 @@ module.exports = {
       return ctx.badRequest('Failed to disable 2FA. Please try again.');
     }
   },
-
-
-//   async deleteAccount(ctx) {
-//   const user = ctx.state.user;
-
-//   if (!user) {
-//     return ctx.unauthorized('You must be logged in');
-//   }
-
-//   try {
-//     const userId = user.id;
-
-//     // Optional: Delete related data first
-//     // Example: Delete user's orders, reviews, addresses, etc.
-    
-//     // Delete user's addresses
-//     await strapi.db.query('api::address.address').deleteMany({
-//       where: { user: userId }
-//     });
-
-//     // Delete user's reviews
-//     await strapi.db.query('api::review.review').deleteMany({
-//       where: { user: userId }
-//     });
-
-//     // Delete user's orders (if you have orders)
-//     // await strapi.db.query('api::order.order').deleteMany({
-//     //   where: { user: userId }
-//     // });
-
-//     // Delete user's stores and related products (if applicable)
-//     const userStores = await strapi.db.query('api::store.store').findMany({
-//       where: { owner: userId }
-//     });
-
-//     for (const store of userStores) {
-//       // Delete products associated with each store
-//       await strapi.db.query('api::product.product').deleteMany({
-//         where: { store: store.id }
-//       });
-//     }
-
-//     // Delete the stores themselves
-//     await strapi.db.query('api::store.store').deleteMany({
-//       where: { owner: userId }
-//     });
-
-//     // Finally, delete the user account
-//     await strapi.query('plugin::users-permissions.user').delete({
-//       where: { id: userId }
-//     });
-
-//     ctx.send({
-//       message: 'Account deleted successfully',
-//       success: true
-//     });
-//   } catch (error) {
-//     console.error('Delete account error:', error);
-//     return ctx.badRequest('Failed to delete account. Please try again.');
-//   }
-// }
 
 
 // Add this to your auth controller (src/api/auth/controllers/auth.js):

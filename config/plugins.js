@@ -15,12 +15,33 @@ module.exports = ({ env }) => ({
       },
     },
   },
+  // email: {
+  //   config: {
+  //    provider: path.resolve('./src/providers/custom-email-provider'),
+  //     providerOptions: {
+  //       transport: {
+  //         service: 'gmail',
+  //         auth: {
+  //           user: env('BREVO_SMTP_USERNAME'),
+  //           pass: env('BREVO_SMTP_PASSWORD'),
+  //         },
+  //       },
+  //     },
+  //     settings: {
+  //       defaultFrom: env('BREVO_DEFAULT_FROM'),
+  //       defaultReplyTo: env('BREVO_DEFAULT_TO'),
+  //     },
+  //   },
+  // },
+
   email: {
     config: {
-     provider: path.resolve('./src/providers/custom-email-provider'),
+      provider: path.resolve('./src/providers/custom-email-provider'),
       providerOptions: {
         transport: {
-          service: 'gmail',
+          host: 'smtp-relay.brevo.com', 
+          port: 587,                     
+          secure: false,               
           auth: {
             user: env('BREVO_SMTP_USERNAME'),
             pass: env('BREVO_SMTP_PASSWORD'),
@@ -32,5 +53,5 @@ module.exports = ({ env }) => ({
         defaultReplyTo: env('BREVO_DEFAULT_TO'),
       },
     },
-  },
+  }
 });
