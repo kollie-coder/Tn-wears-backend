@@ -86,6 +86,24 @@
       "relation": "manyToOne",
       "target": "plugin::users-permissions.user",
       "inversedBy": "orders"
+    },
+    "store": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::store.store",
+      "inversedBy": "orders"
+    },
+    "rejectionReason": {
+      "type": "text"
+    },
+    "rejectedAt": {
+      "type": "datetime"
+    },
+    "trackingNumber": {
+      "type": "string"
+    },
+    "deliveredAt": {
+      "type": "datetime"
     }
   }
 }
