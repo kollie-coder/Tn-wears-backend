@@ -568,6 +568,7 @@ export interface ApiOrderOrder extends Struct.CollectionTypeSchema {
       Schema.Attribute.Private;
     customerEmail: Schema.Attribute.Email;
     customerName: Schema.Attribute.String;
+    deliveredAt: Schema.Attribute.DateTime;
     deliveryAddress: Schema.Attribute.JSON & Schema.Attribute.Required;
     deliveryFee: Schema.Attribute.Decimal &
       Schema.Attribute.Required &
@@ -595,9 +596,13 @@ export interface ApiOrderOrder extends Struct.CollectionTypeSchema {
       Schema.Attribute.Required &
       Schema.Attribute.DefaultTo<'pending'>;
     publishedAt: Schema.Attribute.DateTime;
+    rejectedAt: Schema.Attribute.DateTime;
+    rejectionReason: Schema.Attribute.Text;
+    store: Schema.Attribute.Relation<'manyToOne', 'api::store.store'>;
     subtotal: Schema.Attribute.Decimal & Schema.Attribute.Required;
     tip: Schema.Attribute.Decimal & Schema.Attribute.DefaultTo<0>;
     totalAmount: Schema.Attribute.Decimal & Schema.Attribute.Required;
+    trackingNumber: Schema.Attribute.String;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -859,6 +864,7 @@ export interface ApiStoreStore extends Struct.CollectionTypeSchema {
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<'oneToMany', 'api::store.store'> &
       Schema.Attribute.Private;
+    orders: Schema.Attribute.Relation<'oneToMany', 'api::order.order'>;
     owner: Schema.Attribute.Relation<
       'manyToOne',
       'plugin::users-permissions.user'
