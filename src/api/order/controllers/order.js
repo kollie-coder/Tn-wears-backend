@@ -522,34 +522,108 @@ module.exports = createCoreController('api::order.order', ({ strapi }) => ({
   /**
    * Get user's orders (customer view)
    */
-  async getUserOrders(ctx) {
-    try {
-      const userId = ctx.state.user?.id;
+  // async getUserOrders(ctx) {
+  //   try {
+  //     const userId = ctx.state.user?.id;
 
-      if (!userId) {
-        return ctx.unauthorized('You must be logged in to view orders');
-      }
+  //     if (!userId) {
+  //       return ctx.unauthorized('You must be logged in to view orders');
+  //     }
 
-      const orders = await strapi.entityService.findMany('api::order.order', {
-        filters: { user: userId },
-        sort: { createdAt: 'DESC' },
-        populate: ['user', 'store']
-      });
+  //     const orders = await strapi.entityService.findMany('api::order.order', {
+  //       filters: { user: userId },
+  //       sort: { createdAt: 'DESC' },
+  //       populate: ['user', 'store']
+  //     });
 
-      return ctx.send({
-        success: true,
-        orders: orders.map(order => ({
-          ...order,
-          storeName: order.store?.storeName || 'Unknown Store'
-        })),
-        total: orders.length
-      });
+  //     return ctx.send({
+  //       success: true,
+  //       orders: orders.map(order => ({
+  //         ...order,
+  //         storeName: order.store?.storeName || 'Unknown Store'
+  //       })),
+  //       total: orders.length
+  //     });
 
-    } catch (error) {
-      strapi.log.error('Error fetching user orders:', error);
-      return ctx.internalServerError('Unable to fetch orders');
+  //   } catch (error) {
+  //     strapi.log.error('Error fetching user orders:', error);
+  //     return ctx.internalServerError('Unable to fetch orders');
+  //   }
+  // },
+
+  /**
+ * Get customer's orders
+ */
+async getUserOrders(ctx) {
+  try {
+    const userId = ctx.state.user?.id;
+
+    if (!userId) {
+      return ctx.unauthorized('You must be logged in to view orders');
     }
-  },
+
+    const orders = await strapi.entityService.findMany('api::order.order', {
+      filters: { user: userId },
+      sort: { createdAt: 'DESC' },
+      populate: ['store']
+    });
+
+    // Group orders by status
+    const groupedOrders = {
+      inTransit: [],
+      completed: [],
+      cancelled: []
+    };
+
+    orders.forEach(order => {
+      const transformedOrder = {
+        id: order.id,
+        orderReference: order.orderReference,
+        items: order.items,
+        subtotal: order.subtotal,
+        deliveryFee: order.deliveryFee,
+        tip: order.tip,
+        totalAmount: order.totalAmount,
+        paymentReference: order.paymentReference,
+        paymentStatus: order.paymentStatus,
+        orderStatus: order.orderStatus,
+        deliveryAddress: order.deliveryAddress,
+        customerEmail: order.customerEmail,
+        customerName: order.customerName,
+        paymentMethod: order.paymentMethod,
+        estimatedDeliveryDate: order.estimatedDeliveryDate,
+        trackingNumber: order.trackingNumber,
+        deliveredAt: order.deliveredAt,
+        rejectionReason: order.rejectionReason,
+        rejectedAt: order.rejectedAt,
+        storeName: order.store?.storeName || 'Unknown Store',
+        storeId: order.store?.id,
+        createdAt: order.createdAt,
+        updatedAt: order.updatedAt
+      };
+
+      // Categorize orders
+      if (order.orderStatus === 'delivered') {
+        groupedOrders.completed.push(transformedOrder);
+      } else if (order.orderStatus === 'cancelled') {
+        groupedOrders.cancelled.push(transformedOrder);
+      } else {
+        // processing, confirmed, shipped
+        groupedOrders.inTransit.push(transformedOrder);
+      }
+    });
+
+    return ctx.send({
+      success: true,
+      orders: groupedOrders,
+      total: orders.length
+    });
+
+  } catch (error) {
+    strapi.log.error('Error fetching customer orders:', error);
+    return ctx.internalServerError('Unable to fetch orders');
+  }
+},
 
   /**
    * Get seller's orders (seller dashboard)
