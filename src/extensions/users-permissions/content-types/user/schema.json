@@ -152,6 +152,24 @@
       "relation": "oneToMany",
       "target": "api::order.order",
       "mappedBy": "user"
+    },
+    "conversations": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::conversation.conversation",
+      "mappedBy": "participants"
+    },
+    "messages": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::message.message",
+      "mappedBy": "sender"
+    },
+    "messageRead": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::message.message",
+      "inversedBy": "readBy"
     }
   }
 }

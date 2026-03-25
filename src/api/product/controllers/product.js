@@ -15,7 +15,14 @@ module.exports = createCoreController('api::product.product', ({ strapi }) => ({
         populate: {
           images: true,
           categories: true,
-          store: true,
+          // store: true,
+          store: {
+            populate: {
+              owner: {
+                fields: ['id', 'firstname', 'lastname', 'username', 'userType'],
+              },
+            },
+          },
           tags: true,
           collections: true,
           reviews: true,
@@ -34,6 +41,9 @@ module.exports = createCoreController('api::product.product', ({ strapi }) => ({
 
       // findMany returns an array, so get the first item
       const foundProduct = product[0];
+
+      
+      console.log('store:', JSON.stringify(foundProduct?.store, null, 2));
 
       if (!foundProduct) {
         return ctx.notFound('Product not found');

@@ -515,6 +515,81 @@ export interface ApiColorColor extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiConversationConversation
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'conversations';
+  info: {
+    displayName: 'conversation';
+    pluralName: 'conversations';
+    singularName: 'conversation';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    lastMessage: Schema.Attribute.String;
+    lastMessageAt: Schema.Attribute.DateTime;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::conversation.conversation'
+    > &
+      Schema.Attribute.Private;
+    messages: Schema.Attribute.Relation<'oneToMany', 'api::message.message'>;
+    participants: Schema.Attribute.Relation<
+      'manyToMany',
+      'plugin::users-permissions.user'
+    >;
+    publishedAt: Schema.Attribute.DateTime;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiMessageMessage extends Struct.CollectionTypeSchema {
+  collectionName: 'messages';
+  info: {
+    displayName: 'message';
+    pluralName: 'messages';
+    singularName: 'message';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    content: Schema.Attribute.Text;
+    conversation: Schema.Attribute.Relation<
+      'manyToOne',
+      'api::conversation.conversation'
+    >;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::message.message'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    readBy: Schema.Attribute.Relation<
+      'manyToMany',
+      'plugin::users-permissions.user'
+    >;
+    sender: Schema.Attribute.Relation<
+      'manyToOne',
+      'plugin::users-permissions.user'
+    >;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiNewsletterSubscriptionNewsletterSubscription
   extends Struct.CollectionTypeSchema {
   collectionName: 'newsletter_subscriptions';
@@ -1406,6 +1481,10 @@ export interface PluginUsersPermissionsUser
     confirmationToken: Schema.Attribute.String & Schema.Attribute.Private;
     confirmed: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
     contact: Schema.Attribute.BigInteger;
+    conversations: Schema.Attribute.Relation<
+      'manyToMany',
+      'api::conversation.conversation'
+    >;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -1429,6 +1508,11 @@ export interface PluginUsersPermissionsUser
       'plugin::users-permissions.user'
     > &
       Schema.Attribute.Private;
+    messageRead: Schema.Attribute.Relation<
+      'manyToMany',
+      'api::message.message'
+    >;
+    messages: Schema.Attribute.Relation<'oneToMany', 'api::message.message'>;
     newsletter_subscription: Schema.Attribute.Relation<
       'oneToOne',
       'api::newsletter-subscription.newsletter-subscription'
@@ -1482,6 +1566,8 @@ declare module '@strapi/strapi' {
       'api::category.category': ApiCategoryCategory;
       'api::collection.collection': ApiCollectionCollection;
       'api::color.color': ApiColorColor;
+      'api::conversation.conversation': ApiConversationConversation;
+      'api::message.message': ApiMessageMessage;
       'api::newsletter-subscription.newsletter-subscription': ApiNewsletterSubscriptionNewsletterSubscription;
       'api::order.order': ApiOrderOrder;
       'api::product-variant.product-variant': ApiProductVariantProductVariant;
